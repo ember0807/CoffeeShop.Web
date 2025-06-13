@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+ @* Изменено на русский язык для лучшей локализации *@
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CoffeeShop.Web</title> @* Заголовок страницы, берется из ViewData *@
+
+    @* Подключение стилей Bootstrap *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    @* Подключение кастомных стилей приложения *@
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @* Подключение иконок Bootstrap (опционально, но полезно) *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                @* Ссылка на главную страницу *@
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CoffeeShop.Web</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Menu" asp-action="Index">Меню</a> @* Ссылка на меню *@
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Конфиденциальность</a>
+                        </li>
+                        @* Добавляем ссылку на админ-панель. Она будет видна только администраторам благодаря атрибуту [Authorize] на контроллере *@
+                       @if( User.IsInRole("Administrator"))
+                        {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Админ-панель</a>
+                        </li>
+                        }
+                    </ul>
+                    @* Здесь вставляется _LoginPartial.cshtml, который содержит ссылки для входа/регистрации или информации о пользователе *@
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody() 
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - CoffeeShop.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Конфиденциальность</a>
+        </div>
+    </footer>
+
+    @* Подключение скриптов Bootstrap и jQuery *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @* Подключение кастомных скриптов *@
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @* Этот метод RenderSectionAsync позволяет страницам добавлять свои специфичные скрипты (например, для валидации форм) *@
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,44 @@
+﻿@model IEnumerable<CoffeeShop.Web.Models.Category>
+
+@{
+    ViewData["Title"] = "Управление категориями";
+}
+
+<h1>Управление категориями</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Редактировать</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Детали</a>|
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Удалить</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Вернуться в админ-панель</a>
+</div>

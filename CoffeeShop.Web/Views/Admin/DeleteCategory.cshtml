@@ -1,0 +1,27 @@
+﻿@model CoffeeShop.Web.Models.Category
+
+@{
+    ViewData["Title"] = "Удалить категорию";
+}
+
+<h1>Удалить категорию</h1>
+
+<h3>Вы уверены, что хотите удалить эту категорию?</h3>
+<div>
+    <h4>Категория</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+    </dl>
+
+    <form asp-action="DeleteCategory">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Удалить" class="btn btn-danger" /> |
+        <a asp-action="Categories" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>

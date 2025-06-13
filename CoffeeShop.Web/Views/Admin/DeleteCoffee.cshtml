@@ -1,0 +1,54 @@
+﻿@model CoffeeShop.Web.Models.Coffee
+
+@{
+    ViewData["Title"] = "Удалить напиток";
+}
+
+<h1>Удалить напиток</h1>
+
+<h3>Вы уверены, что хотите удалить этот напиток?</h3>
+<div>
+    <h4>Напиток</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Price)
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Price.ToString("C")
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Category)
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Category?.Name
+        </dd>
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <dt class="col-sm-2">
+                Изображение
+            </dt>
+            <dd class="col-sm-10">
+                <img src="@Model.ImageUrl" alt="@Model.Name" style="max-width: 150px; height: auto;" />
+            </dd>
+        }
+    </dl>
+
+    <form asp-action="DeleteCoffee">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Удалить" class="btn btn-danger" /> |
+        <a asp-action="Coffees" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>

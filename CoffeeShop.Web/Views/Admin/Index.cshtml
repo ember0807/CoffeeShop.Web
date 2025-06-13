@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Админ-панель";
+}
+
+<h1>Админ-панель</h1>
+
+<div class="list-group">
+    <a asp-controller="Admin" asp-action="Categories" class="list-group-item list-group-item-action">Управление категориями</a>
+    <a asp-controller="Admin" asp-action="Coffees" class="list-group-item list-group-item-action">Управление напитками</a>
+    <a asp-controller="Admin" asp-action="Desserts" class="list-group-item list-group-item-action">Управление десертами</a>
+    @* Здесь будут ссылки на управление пользователями, заказами и т.д. *@
+    <a asp-controller="Admin" asp-action="Users" class="list-group-item list-group-item-action disabled">Управление пользователями (В разработке)</a>
+    <a asp-controller="Admin" asp-action="Orders" class="list-group-item list-group-item-action disabled">Управление заказами (В разработке)</a>
+</div>
+
+@* Отображение сообщений об успехе/ошибке из TempData *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mt-3" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
