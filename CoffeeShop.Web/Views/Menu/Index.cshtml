@@ -32,6 +32,17 @@
                     </div>
                 </div>
             </div>
+            <div class="card-body">
+                <h5 class="card-title">@coffee.Name</h5>
+                <p class="card-text">@coffee.Description</p>
+                <p class="card-text"><strong>@coffee.Price.ToString("C")</strong></p>
+                <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                    <input type="hidden" name="productId" value="@coffee.Id" />
+                    <input type="hidden" name="productType" value="Coffee" /> @* Обязательно добавляем тип продукта! *@
+                    <input type="number" name="quantity" value="1" min="1" class="form-control mb-2" style="width: 80px; display: inline-block;" />
+                    <button type="submit" class="btn btn-primary">Добавить в корзину</button>
+                </form>
+            </div>
         }
     </div>
 }
@@ -60,8 +71,20 @@ else
                     </div>
                 </div>
             </div>
+            <div class="card-body">
+                <h5 class="card-title">@dessert.Name</h5>
+                <p class="card-text">@dessert.Description</p>
+                <p class="card-text"><strong>@dessert.Price.ToString("C")</strong></p>
+                <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                    <input type="hidden" name="productId" value="@dessert.Id" />
+                    <input type="hidden" name="productType" value="Dessert" /> @* Обязательно добавляем тип продукта! *@
+                    <input type="number" name="quantity" value="1" min="1" class="form-control mb-2" style="width: 80px; display: inline-block;" />
+                    <button type="submit" class="btn btn-primary">Добавить в корзину</button>
+                </form>
+            </div>
         }
     </div>
+    
 }
 else
 {

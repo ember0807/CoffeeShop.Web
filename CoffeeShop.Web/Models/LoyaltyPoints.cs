@@ -1,23 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity; // Для использования IdentityUser
+using Microsoft.AspNetCore.Identity; // Для связи с IdentityUser
 
 namespace CoffeeShop.Web.Models
 {
     public class LoyaltyPoints
     {
-        [Key]
         public int Id { get; set; }
 
-        // UserId - это внешний ключ к таблице пользователей IdentityUser
-        [Required]
-        public string UserId { get; set; }
+        // Пользователь, которому принадлежат баллы
+        public string? UserId { get; set; } // ID пользователя из Identity (внешний ключ)
+        public IdentityUser? User { get; set; } // Навигационное свойство к пользователю
 
-        // Навигационное свойство к пользователю.
-        // IdentityUser - это базовая модель пользователя в ASP.NET Core Identity.
-        public IdentityUser? User { get; set; }
+        [Range(0, int.MaxValue, ErrorMessage = "Баллы лояльности не могут быть отрицательными.")]
+        public int Points { get; set; } // Количество баллов
 
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "Баллы не могут быть отрицательными.")]
-        public int Points { get; set; }
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow; // Дата последнего обновления
     }
 }

@@ -1,0 +1,110 @@
+﻿@model CoffeeShop.Web.Models.Order
+
+@using CoffeeShop.Web.Extensions
+@using CoffeeShop.Web.ViewModels
+
+@{
+    ViewData["Title"] = "Оформление заказа";
+
+    // Получаем корзину с помощью нашего метода расширения
+    var cart = Context.Session.Get<List<CoffeeShop.Web.ViewModels.CartItem>>("Cart") ?? new List<CoffeeShop.Web.ViewModels.CartItem>();
+    decimal cartTotal = cart.Sum(item => item.TotalPrice);
+}
+
+<h1>Оформление заказа</h1>
+
+<h4>Ваш заказ</h4>
+<hr />
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessages"] != null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul>
+            @foreach (var message in TempData["ErrorMessages"] as List<string>)
+            {
+                <li>@message</li>
+            }
+        </ul>
+    </div>
+}
+
+@if (cart.Any())
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            Содержимое корзины
+        </div>
+        <ul class="list-group list-group-flush">
+            @foreach (var item in cart)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @item.ProductName (@item.Quantity x @item.Price.ToString("C"))
+                    <span>@item.TotalPrice.ToString("C")</span>
+                </li>
+            }
+            <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-info">
+                <strong>Общая сумма:</strong>
+                <strong>@cartTotal.ToString("C")</strong>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning" role="alert">
+        Корзина пуста. Невозможно оформить заказ.
+    </div>
+    <p><a asp-action="Index" asp-controller="Menu" class="btn btn-primary">Вернуться в меню</a></p>
+}
+
+@if (cart.Any())
+{
+    <h4>Информация для доставки</h4>
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="Checkout">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                @* Здесь будут отображаться общие ошибки формы или ошибки, не привязанные к конкретному полю *@
+
+                <div class="form-group mb-3">
+                    <label asp-for="CustomerName" class="control-label"></label>
+                    <input asp-for="CustomerName" class="form-control" />
+                    <span asp-validation-for="CustomerName" class="text-danger"></span>
+                    @* Этот span покажет ошибку для CustomerName *@
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="CustomerEmail" class="control-label"></label>
+                    <input asp-for="CustomerEmail" class="form-control" />
+                    <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                    @* Этот span покажет ошибку для CustomerEmail *@
+                </div>
+
+                @* тут были блоки для адреса и тд *@
+
+               
+
+
+                <div class="form-group">
+                    <input type="submit" value="Подтвердить заказ" class="btn btn-success" />
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Вернуться в корзину</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,20 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using CoffeeShop.Web.Data // Для ApplicationDbContext
+@using CoffeeShop.Web.Models // Для LoyaltyPoints
+@using Microsoft.EntityFrameworkCore; //для FirstOrDefaultAsync
+@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
+@inject ApplicationDbContext Context
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    if (user != null)
+    {
+        var loyaltyPoints = await Context.LoyaltyPoints?.FirstOrDefaultAsync(lp => lp.UserId == user.Id);
+        int points = loyaltyPoints?.Points ?? 0;
+
+                <li class="nav-item">
+                    <span class="nav-link text-info">Баллы: <strong>@points</strong></span>
+                </li>
+    }
+}

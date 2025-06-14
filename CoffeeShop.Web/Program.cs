@@ -24,6 +24,13 @@ builder.Services.AddControllersWithViews();
 // Добавляем поддержку Razor Pages (для Identity UI)
 builder.Services.AddRazorPages();
 
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Время неактивности сессии до её истечения
+    options.Cookie.HttpOnly = true; // Куки сессии доступны только по HTTP, не через JavaScript
+    options.Cookie.IsEssential = true; // Сделать куки сессии обязательными для работы приложения
+});
+
 var app = builder.Build();
 
 // Применяем миграции и заполняем данные при запуске
@@ -66,6 +73,8 @@ app.UseRouting();
 
 app.UseAuthorization();
 app.UseAuthentication();
+
+app.UseSession();//для сесии в корзину
 
 app.MapControllerRoute(
     name: "default",

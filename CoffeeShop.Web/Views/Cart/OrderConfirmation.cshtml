@@ -1,0 +1,61 @@
+﻿@model CoffeeShop.Web.Models.Order
+
+@{
+    ViewData["Title"] = "Заказ подтвержден";
+}
+
+<div class="text-center">
+    <h1 class="display-4 text-success">Заказ успешно оформлен!</h1>
+    <p class="lead">Ваш номер заказа: <strong>@Model.Id</strong></p>
+    <p class="lead">Мы свяжемся с вами в ближайшее время для подтверждения деталей.</p>
+</div>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                Детали заказа
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Имя:</strong> @Model.CustomerName</li>
+                <li class="list-group-item"><strong>Email:</strong> @Model.CustomerEmail</li>
+                @* <li class="list-group-item"><strong>Телефон:</strong> @Model.CustomerPhone</li>
+                <li class="list-group-item"><strong>Адрес доставки:</strong> @Model.DeliveryAddress</li> *@
+                <li class="list-group-item"><strong>Дата заказа:</strong> @Model.OrderDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</li>
+                <li class="list-group-item"><strong>Общая сумма:</strong> @Model.TotalAmount.ToString("C")</li>
+                <li class="list-group-item"><strong>Статус:</strong> @Model.Status</li>
+            </ul>
+            <div class="card-body">
+                <h5>Элементы заказа:</h5>
+                <ul class="list-group">
+                    @if (Model.OrderItems != null && Model.OrderItems.Any())
+                    {
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <li class="list-group-item">
+                                @item.ProductName (@item.Quantity x @item.Price.ToString("C")) = @item.TotalPrice.ToString("C")
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item">Нет элементов в заказе.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    @if (TempData["LoyaltyPointsMessage"] != null)
+    {
+        <div class="alert alert-info" role="alert">
+            @TempData["LoyaltyPointsMessage"]
+        </div>
+    }
+    <a asp-action="Index" asp-controller="Home" class="btn btn-primary">Вернуться на главную</a>
+    <a asp-action="Index" asp-controller="Menu" class="btn btn-secondary">Продолжить покупки</a>
+</div>

@@ -23,8 +23,13 @@ namespace CoffeeShop.Web.Data
         public DbSet<Coffee>? Coffees { get; set; }
         public DbSet<Dessert>? Desserts { get; set; }
         public DbSet<Category>? Categories { get; set; }
-        public DbSet<LoyaltyPoints>? LoyaltyPoints { get; set; }
         // DbSet для IdentityUser уже есть в IdentityDbContext
+
+        // Новые DbSet для Order, OrderItem и LoyaltyPoints
+        public DbSet<Order>? Orders { get; set; }
+        public DbSet<OrderItem>? OrderItems { get; set; }
+        public DbSet<LoyaltyPoints>? LoyaltyPoints { get; set; }
+
 
         // Метод OnModelCreating используется для дополнительной настройки модели,
         // например, для определения связей между сущностями.
@@ -32,6 +37,36 @@ namespace CoffeeShop.Web.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder); // Важно вызвать базовый метод IdentityDbContext
+
+            // Настройка связей (Relationships)
+            // Order <-> OrderItem (один заказ ко многим элементам заказа)
+            modelBuilder.Entity<Order>()
+                .HasMany(o => o.OrderItems)
+                .WithOne(oi => oi.Order)
+                .HasForeignKey(oi => oi.OrderId)
+                .OnDelete(DeleteBehavior.Cascade); // При удалении заказа удаляются и его элементы
+
+            // Order <-> IdentityUser (один пользователь ко многим заказам)
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany() // У IdentityUser нет навигационного свойства для заказов, поэтому Many()
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.SetNull); // При удалении пользователя UserId в Order станет NULL
+
+            // LoyaltyPoints <-> IdentityUser (один пользователь к одной записи баллов)
+            modelBuilder.Entity<LoyaltyPoints>()
+                .HasOne(lp => lp.User)
+                .WithMany() // У IdentityUser нет навигационного свойства для LoyaltyPoints
+                .HasForeignKey(lp => lp.UserId)
+                .IsRequired() // Связь обязательна
+                .OnDelete(DeleteBehavior.Cascade); // При удалении пользователя удаляются и его баллы
+
+            // Убедитесь, что LoyaltyPoints.UserId уникален (один пользователь = одна запись баллов)
+            modelBuilder.Entity<LoyaltyPoints>()
+                .HasIndex(lp => lp.UserId)
+                .IsUnique();
+
+
             // Fluent API для настройки связи один-ко-многим между Category и Coffee
             modelBuilder.Entity<Coffee>()
                 .HasOne(c => c.Category) // У Coffee есть одна Category

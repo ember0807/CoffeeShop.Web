@@ -1,0 +1,100 @@
+﻿@model List<CoffeeShop.Web.ViewModels.CartItem>
+
+@{
+    ViewData["Title"] = "Ваша корзина";
+    decimal cartTotal = 0;
+}
+
+<h1>Ваша корзина</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mt-3" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th></th> @* Для изображения *@
+                <th>Товар</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Итого</th>
+                <th></th> @* Для кнопок действия *@
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                cartTotal += item.TotalPrice;
+                <tr>
+                    @* <td>
+                        @if (!string.IsNullOrEmpty(item.ImageUrl)) // Проверяем, что URL изображения не пустой
+                        {
+                            <img src="@item.ImageUrl" alt="@item.ProductName" style="width: 50px; height: auto;" />
+                        }
+                        else
+                        {
+                            // Опционально: отобразить заглушку, если картинки нет
+                            <img src="/images/placeholder.jpg" alt="No Image" style="width: 50px; height: auto;" />
+                        }
+                    </td> *@
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="@item.ProductName" style="width: 50px; height: auto;" />
+                        }
+                    </td>
+                    <td>@item.ProductName</td>
+                    <td>@item.Price.ToString("C")</td>
+                    <td>
+                        <form asp-action="UpdateQuantity" method="post" class="d-inline-flex align-items-center">
+                            <input type="hidden" name="productId" value="@item.ProductId" />
+                            <input type="hidden" name="productType" value="@item.ProductType" />
+                            <input type="number" name="quantity" value="@item.Quantity" min="0" class="form-control form-control-sm me-2" style="width: 70px;" onchange="this.form.submit()" />
+                        </form>
+                    </td>
+                    <td>@(item.TotalPrice.ToString("C"))</td>
+                    <td>
+                        <form asp-action="RemoveFromCart" method="post" class="d-inline">
+                            <input type="hidden" name="productId" value="@item.ProductId" />
+                            <input type="hidden" name="productType" value="@item.ProductType" />
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end"><strong>Общая сумма к оплате:</strong></td>
+                <td><strong>@cartTotal.ToString("C")</strong></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="d-flex justify-content-between mt-3">
+        <a asp-action="Index" asp-controller="Menu" class="btn btn-secondary">Продолжить покупки</a>
+        <form asp-action="ClearCart" method="post" class="d-inline">
+            <button type="submit" class="btn btn-warning">Очистить корзину</button>
+        </form>
+        <a asp-action="Checkout" asp-controller="Cart" class="btn btn-success">Оформить заказ</a> @* Ссылка на оформление заказа *@
+    </div>
+}
+else
+{
+    <div class="alert alert-info" role="alert">
+        Ваша корзина пуста. <a asp-action="Index" asp-controller="Menu">Начать покупки</a>
+    </div>
+}

@@ -32,7 +32,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Menu" asp-action="Index">Меню</a> @* Ссылка на меню *@
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Конфиденциальность</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a> @* Ссылка на корзину *@
                         </li>
                         @* Добавляем ссылку на админ-панель. Она будет видна только администраторам благодаря атрибуту [Authorize] на контроллере *@
                        @if( User.IsInRole("Administrator"))

@@ -47,5 +47,14 @@
 </div>
 <div>
     <a asp-action="Index" class="btn btn-secondary">Вернуться к меню</a>
-    @* Здесь потом добавлю кнопку "Добавить в корзину" *@
+
+    <form asp-controller="Cart" asp-action="AddToCart" method="post">
+        <input type="hidden" name="productId" value="@Model.Id" />
+        <input type="hidden" name="productType" value="Coffee" /> @* Важно: указать тип продукта *@
+        <div class="form-group">
+            <label for="quantity">Количество:</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" style="width: 80px;" />
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить в корзину</button>
+    </form>
 </div>
