@@ -1,9 +1,9 @@
 using CoffeeShop.Web.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Globalization;
-using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,12 +33,29 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true; // Сделать куки сессии обязательными для работы приложения
 });
 
-// --- Настройка сервисов локализации (ДОБАВИТЬ ЭТОТ БЛОК) ---
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Укажите путь к папке с файлами ресурсов
+// --- Настройка сервисов локализации ---
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Путь к папке с файлами ресурсов
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("ru-RU"),
+        new CultureInfo("en-US")
+    };
+
+    options.DefaultRequestCulture = new RequestCulture("ru-RU"); // Устанавливаем русский по умолчанию
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider()); // Можно использовать заголовок Accept-Language
+    
+});
+
+// Добавляем MVC, ViewLocalization и DataAnnotationsLocalization в одном вызове
 builder.Services.AddMvc()
     .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix) // Для локализации представлений
     .AddDataAnnotationsLocalization(); // Для локализации атрибутов валидации в моделях
-// --- КОНЕЦ БЛОКА НАСТРОЙКИ СЕРВИСОВ ЛОКАЛИЗАЦИИ ---
+
 
 var app = builder.Build();
 
@@ -60,25 +77,12 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
+        var logger = services.GetRequiredService < ILogger < Program > >();
         logger.LogError(ex, "Произошла ошибка при заполнении базы данных.");
     }
 }
 
-// --- Настройка поддерживаемых языов  ---
-var defaultCulture = "ru-RU"; // Устанавливаем русский по умолчанию
-var supportedCultures = new[] {
-    new CultureInfo(defaultCulture),
-    new CultureInfo("en-US") // Можно оставить, на всякий случай
-};
-app.UseRequestLocalization(new RequestLocalizationOptions
-{
-    DefaultRequestCulture = new RequestCulture(defaultCulture),
-    SupportedCultures = supportedCultures,
-    SupportedUICultures = supportedCultures
-});
-
-
+// Проверка окружения и обработчик ошибок 
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -92,13 +96,15 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
+// --- ИСПОЛЬЗОВАНИЕ ЛОКАЛИЗАЦИИ 
+app.UseRequestLocalization();
 
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseSession();//для сесии в корзину
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
@@ -106,4 +112,4 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
-app.Run();
+app.Run(); 

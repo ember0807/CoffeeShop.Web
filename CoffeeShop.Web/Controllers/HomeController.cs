@@ -22,6 +22,19 @@ namespace CoffeeShop.Web.Controllers
         {
             return View();
         }
+        public IActionResult Menu()
+        {
+            
+            ViewData["Title"] = "Наше Меню";
+            return View();
+        }
+
+        public IActionResult Contact()
+        {
+            
+            ViewData["Title"] = "Контакты"; 
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

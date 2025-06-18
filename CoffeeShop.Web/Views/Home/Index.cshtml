@@ -1,8 +1,100 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Добро пожаловать в CoffeeShop!";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@* Главный секция *@
+<div class="jumbotron jumbotron-fluid text-center bg-light py-5">
+    <div class="container">
+        <h1 class="display-4 text-brown">Добро пожаловать в CoffeeShop!</h1>
+        <p class="my-4">Ваш идеальный уголок для наслаждения ароматным кофе и изысканными десертами.</p>
+        <hr class="my-4">
+        <p>Откройте для себя наше обширное меню и окунитесь в мир вкуса и уюта.</p>
+        <a asp-controller="Menu" asp-action="Index" class="btn btn-primary btn-lg mt-3">Посмотреть меню</a>
+    </div>
 </div>
+
+@* Секция с кратким описанием / Особенности *@
+<div class="container mt-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Свежеобжаренный Кофе</h5>
+                    <p class="card-text">Мы используем только лучшие зерна, обжаренные до совершенства, чтобы каждое утро начиналось с идеального вкуса.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Изысканные Десерты</h5>
+                    <p class="card-text">Наши кондитеры создают шедевры, которые идеально дополнят ваш кофе.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Уютная Атмосфера</h5>
+                    <p class="card-text">Приходите и расслабьтесь в нашем уютном заведении, идеальном для работы или встреч с друзьями.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Секция с призывом к действию или контактами *@
+<div class="container mt-5 mb-5 text-center">
+    <h2 class="text-brown">Приходите к нам!</h2>
+    <p class="lead">Мы всегда рады новым гостям.</p>
+    <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-primary btn-lg mt-3">Свяжитесь с нами</a>
+</div>
+
+@* Пользовательские стили для лучшего внешнего вида *@
+<style>
+    .jumbotron {
+        background-image: url('/images/coffee-beans-background.jpg'); 
+        background-size: cover;
+        background-position: center;
+        color: white; /* Цвет текста на баннере */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Тень для читабельности */
+    }
+
+    .jumbotron .display-4, .jumbotron .lead {
+        color: white; 
+    }
+
+    .text-brown {
+        color: #6F4E37; /* оттенок коричневого */
+    }
+
+    .btn-primary {
+        background-color: #6F4E37;
+        border-color: #6F4E37;
+    }
+
+    .btn-primary:hover {
+        background-color: #5A3E2D;
+        border-color: #5A3E2D;
+    }
+
+    .btn-outline-primary {
+        color: #6F4E37;
+        border-color: #6F4E37;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #6F4E37;
+        color: white;
+    }
+
+    /* Дополнительные стили для теней и закругленных углов карточек */
+    .card.shadow-sm {
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
+        border-radius: .5rem;
+    }
+</style>
+
+@section Scripts {
+    
+}
