@@ -7,7 +7,7 @@
 <h1>Управление категориями</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="CreateCategory">Create New</a>
 </p>
 @if (TempData["SuccessMessage"] != null)
 {
@@ -31,9 +31,9 @@
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Редактировать</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Детали</a>|
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Удалить</a>
+                    <a asp-action="EditCategory" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Редактировать</a> |
+                    @* <a asp-action="DetailsCategory" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Детали</a>| *@
+                    <a asp-action="DeleteCategory" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Удалить</a>
             </td>
         </tr>
 }

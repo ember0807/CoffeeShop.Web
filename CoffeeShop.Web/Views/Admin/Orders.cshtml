@@ -1,0 +1,87 @@
+﻿@model IEnumerable<CoffeeShop.Web.Models.Order>
+
+@{
+    ViewData["Title"] = "Управление заказами";
+}
+
+<h1>Управление заказами</h1>
+
+<p>
+    Обзор всех заказов, оформленных в магазине.
+</p>
+
+<hr />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OrderDate)
+            </th>
+            <th>
+                Клиент
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TotalAmount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Id)
+                </td>
+                <td>
+                    @item.OrderDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                </td>
+                <td>
+                    @if (item.User != null)
+                    {
+                        @item.User.UserName
+                        <br />
+                        <small class="text-muted">(@item.CustomerEmail)</small>
+                    }
+                    else
+                    {
+                        @item.CustomerName
+                        <br />
+                        <small class="text-muted">(@item.CustomerEmail)</small>
+                    }
+                </td>
+                <td>
+                    @item.TotalAmount.ToString("C")
+                </td>
+                <td>
+                    <span class="badge @(item.Status == "Completed" ? "bg-success" : item.Status == "Cancelled" ? "bg-danger" : "bg-warning text-dark")">
+                        @item.Status
+                    </span>
+                </td>
+                <td>
+                    <a asp-action="OrderDetails" asp-route-id="@item.Id" class="btn btn-info btn-sm">Детали</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

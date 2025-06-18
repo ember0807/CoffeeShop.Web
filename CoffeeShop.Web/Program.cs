@@ -2,6 +2,8 @@ using CoffeeShop.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,13 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true; // Сделать куки сессии обязательными для работы приложения
 });
 
+// --- Настройка сервисов локализации (ДОБАВИТЬ ЭТОТ БЛОК) ---
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Укажите путь к папке с файлами ресурсов
+builder.Services.AddMvc()
+    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix) // Для локализации представлений
+    .AddDataAnnotationsLocalization(); // Для локализации атрибутов валидации в моделях
+// --- КОНЕЦ БЛОКА НАСТРОЙКИ СЕРВИСОВ ЛОКАЛИЗАЦИИ ---
+
 var app = builder.Build();
 
 // Применяем миграции и заполняем данные при запуске
@@ -56,6 +65,20 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// --- Настройка поддерживаемых языов  ---
+var defaultCulture = "ru-RU"; // Устанавливаем русский по умолчанию
+var supportedCultures = new[] {
+    new CultureInfo(defaultCulture),
+    new CultureInfo("en-US") // Можно оставить, на всякий случай
+};
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(defaultCulture),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -71,8 +94,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
+
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseSession();//для сесии в корзину
 

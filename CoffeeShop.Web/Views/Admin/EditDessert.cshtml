@@ -1,4 +1,4 @@
-﻿@model CoffeeShop.Web.Models.Dessert
+﻿@model CoffeeShop.Web.ViewModels.DessertCreateEditViewModel 
 
 @{
     ViewData["Title"] = "Редактировать десерт";
@@ -10,9 +10,9 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="EditDessert">
+        <form asp-action="EditDessert" enctype="multipart/form-data"> @* <--- ДОБАВИТЬ ЭТОТ АТРИБУТ! *@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Id" /> @* Важно для передачи ID при редактировании *@
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" class="form-control" />
@@ -28,11 +28,23 @@
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
+
             <div class="form-group mt-3">
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                <label for="ImageFile" class="control-label">Изображение</label>
+                <input type="file" id="ImageFile" name="ImageFile" class="form-control" accept="image/*" /> 
+                <span class="text-danger"></span> @* Для ошибок валидации файла *
+
+                @* Отображаем существующее изображение, если оно есть *@
+                @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
+                {
+                    <div class="mt-2">
+                        <img src="@Model.ExistingImageUrl" alt="Существующее изображение" style="max-width: 150px; max-height: 150px;" />
+                        <p class="text-muted">Текущее изображение</p>
+                    </div>
+                }
+                <input type="hidden" asp-for="ExistingImageUrl" /> @* Передаем существующий URL, чтобы сохранить его, если новый файл не загружен *@
             </div>
+
             <div class="form-group mt-3">
                 <input type="submit" value="Сохранить" class="btn btn-primary" />
             </div>
@@ -45,7 +57,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

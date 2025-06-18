@@ -1,8 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; // Для атрибута [Authorize]
-using CoffeeShop.Web.Data; // Для ApplicationDbContext
-using Microsoft.EntityFrameworkCore; // Для ToListAsync, FindAsync, Include
+﻿using CoffeeShop.Web.Data; // Для ApplicationDbContext
 using CoffeeShop.Web.Models; // Для моделей Coffee, Dessert, Category
+using Microsoft.AspNetCore.Authorization; // Для атрибута [Authorize]
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering; // Для SelectList
+using Microsoft.EntityFrameworkCore; // Для ToListAsync, FindAsync, Include
+using Microsoft.AspNetCore.Identity; // Для UserManager
+using Microsoft.Extensions.Configuration; // Для доступа к appsettings.json
+using System.IO; // Для работы с файловой системой
+using CoffeeShop.Web.ViewModels; // Для новых ViewModel
 using Microsoft.AspNetCore.Mvc.Rendering; // Для SelectList
 
 namespace CoffeeShop.Web.Controllers
@@ -11,10 +16,20 @@ namespace CoffeeShop.Web.Controllers
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IConfiguration _configuration;
+        private readonly string _productImageUploadFolder; //Добавляем для пути загрузки
+        //public AdminController(ApplicationDbContext context)
+        //{
+        //    _context = context;
+        //}
 
-        public AdminController(ApplicationDbContext context)
+        public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IConfiguration configuration)
         {
             _context = context;
+            _userManager = userManager; // <-- Инициализируем UserManager
+            _configuration = configuration; // <-- Инициализируем IConfiguration
+            _productImageUploadFolder = _configuration.GetValue<string>("ImageSettings:ProductImageUploadFolder") ?? "images/products/"; // <-- Получаем путь из appsettings.json
         }
 
         // Главная страница админ-панели
@@ -156,25 +171,40 @@ namespace CoffeeShop.Web.Controllers
         // GET: Добавление нового напитка
         public IActionResult CreateCoffee()
         {
-            // Передаем список категорий для выпадающего списка
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
-            return View();
+            // Передаем пустую ViewModel
+            return View(new CoffeeCreateEditViewModel()); // <--- Передаем ViewModel
         }
 
         // POST: Добавление нового напитка
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCoffee([Bind("Name,Description,Price,ImageUrl,CategoryId")] Coffee coffee)
+        public async Task<IActionResult> CreateCoffee(CoffeeCreateEditViewModel model) // <--- Изменяем тип параметра
         {
             if (ModelState.IsValid)
             {
+                string imageUrl = string.Empty;
+                if (model.ImageFile != null)
+                {
+                    imageUrl = await UploadImage(model.ImageFile); // Используем ваш вспомогательный метод
+                }
+
+                var coffee = new Coffee
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    Price = model.Price,
+                    ImageUrl = imageUrl, // Сохраняем URL изображения
+                    CategoryId = model.CategoryId
+                };
+
                 _context.Add(coffee);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Напиток успешно добавлен.";
                 return RedirectToAction(nameof(Coffees));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", coffee.CategoryId);
-            return View(coffee);
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", model.CategoryId);
+            return View(model); // Возвращаем ViewModel с ошибками валидации
         }
 
         // GET: Редактирование напитка
@@ -190,16 +220,28 @@ namespace CoffeeShop.Web.Controllers
             {
                 return NotFound();
             }
+
+            // Преобразуем Coffee в CoffeeCreateEditViewModel для представления
+            var viewModel = new CoffeeCreateEditViewModel
+            {
+                Id = coffee.Id,
+                Name = coffee.Name,
+                Description = coffee.Description,
+                Price = coffee.Price,
+                ExistingImageUrl = coffee.ImageUrl, // Передаем существующий URL для отображения
+                CategoryId = coffee.CategoryId
+            };
+
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", coffee.CategoryId);
-            return View(coffee);
+            return View(viewModel); // <--- Передаем ViewModel
         }
 
         // POST: Редактирование напитка
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditCoffee(int id, [Bind("Id,Name,Description,Price,ImageUrl,CategoryId")] Coffee coffee)
+        public async Task<IActionResult> EditCoffee(int id, CoffeeCreateEditViewModel model) // <--- Изменяем тип параметра
         {
-            if (id != coffee.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
@@ -208,13 +250,31 @@ namespace CoffeeShop.Web.Controllers
             {
                 try
                 {
-                    _context.Update(coffee);
+                    var coffeeToUpdate = await _context.Coffees!.FindAsync(id);
+                    if (coffeeToUpdate == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Если загружено новое изображение, удаляем старое и сохраняем новое
+                    if (model.ImageFile != null && model.ImageFile.Length > 0)
+                    {
+                        DeleteImage(coffeeToUpdate.ImageUrl); // Удаляем старое
+                        coffeeToUpdate.ImageUrl = await UploadImage(model.ImageFile); // Загружаем новое
+                    }
+                    // Обновляем остальные поля из ViewModel
+                    coffeeToUpdate.Name = model.Name;
+                    coffeeToUpdate.Description = model.Description;
+                    coffeeToUpdate.Price = model.Price;
+                    coffeeToUpdate.CategoryId = model.CategoryId;
+
+                    _context.Update(coffeeToUpdate);
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Напиток успешно обновлен.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CoffeeExists(coffee.Id))
+                    if (!CoffeeExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -225,8 +285,8 @@ namespace CoffeeShop.Web.Controllers
                 }
                 return RedirectToAction(nameof(Coffees));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", coffee.CategoryId);
-            return View(coffee);
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", model.CategoryId);
+            return View(model); // Возвращаем ViewModel с ошибками валидации
         }
 
         // GET: Удаление напитка
@@ -282,22 +342,32 @@ namespace CoffeeShop.Web.Controllers
         // GET: Добавление нового десерта
         public IActionResult CreateDessert()
         {
-            return View();
+            return View(new DessertCreateEditViewModel()); // Возвращаем пустую ViewModel
         }
 
         // POST: Добавление нового десерта
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateDessert([Bind("Name,Description,Price,ImageUrl")] Dessert dessert)
+        public async Task<IActionResult> CreateDessert(DessertCreateEditViewModel model) // <--- Измените тип параметра
         {
             if (ModelState.IsValid)
             {
+                string imageUrl = await UploadImage(model.ImageFile); // Используем ваш вспомогательный метод
+
+                var dessert = new Dessert
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    Price = model.Price,
+                    ImageUrl = imageUrl // Сохраняем URL изображения
+                };
+
                 _context.Add(dessert);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Десерт успешно добавлен.";
                 return RedirectToAction(nameof(Desserts));
             }
-            return View(dessert);
+            return View(model); // Возвращаем модель с ошибками валидации
         }
 
         // GET: Редактирование десерта
@@ -313,15 +383,28 @@ namespace CoffeeShop.Web.Controllers
             {
                 return NotFound();
             }
-            return View(dessert);
+
+            // Преобразуем Dessert в DessertCreateEditViewModel для представления
+            var viewModel = new DessertCreateEditViewModel
+            {
+                Id = dessert.Id,
+                Name = dessert.Name,
+                Description = dessert.Description,
+                Price = dessert.Price,
+                ExistingImageUrl = dessert.ImageUrl // Передаем существующий URL для отображения
+            };
+
+            return View(viewModel); // <--- Передаем ViewModel в представление
         }
+
+
 
         // POST: Редактирование десерта
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditDessert(int id, [Bind("Id,Name,Description,Price,ImageUrl")] Dessert dessert)
+        public async Task<IActionResult> EditDessert(int id, DessertCreateEditViewModel model) // <--- Измените тип параметра
         {
-            if (id != dessert.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
@@ -330,13 +413,30 @@ namespace CoffeeShop.Web.Controllers
             {
                 try
                 {
-                    _context.Update(dessert);
+                    var dessertToUpdate = await _context.Desserts!.FindAsync(id);
+                    if (dessertToUpdate == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Если загружено новое изображение, удаляем старое и сохраняем новое
+                    if (model.ImageFile != null && model.ImageFile.Length > 0)
+                    {
+                        DeleteImage(dessertToUpdate.ImageUrl); // Удаляем старое
+                        dessertToUpdate.ImageUrl = await UploadImage(model.ImageFile); // Загружаем новое
+                    }
+                    // Обновляем остальные поля из ViewModel
+                    dessertToUpdate.Name = model.Name;
+                    dessertToUpdate.Description = model.Description;
+                    dessertToUpdate.Price = model.Price;
+
+                    _context.Update(dessertToUpdate);
                     await _context.SaveChangesAsync();
                     TempData["SuccessMessage"] = "Десерт успешно обновлен.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DessertExists(dessert.Id))
+                    if (!DessertExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -347,7 +447,7 @@ namespace CoffeeShop.Web.Controllers
                 }
                 return RedirectToAction(nameof(Desserts));
             }
-            return View(dessert);
+            return View(model); // Возвращаем модель с ошибками валидации
         }
 
         // GET: Удаление десерта
@@ -387,6 +487,116 @@ namespace CoffeeShop.Web.Controllers
         private bool DessertExists(int id)
         {
             return (_context.Desserts?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        // GET: Admin/Orders - Список всех заказов
+        public async Task<IActionResult> Orders()
+        {
+            // Получаем все заказы, включая их элементы (OrderItems) и информацию о пользователе (если есть)
+            var orders = await _context.Orders!
+                                       .Include(o => o.OrderItems)
+                                       .Include(o => o.User) // Загружаем связанного пользователя
+                                       .OrderByDescending(o => o.OrderDate) // Сортируем по дате, новые сверху
+                                       .ToListAsync();
+            return View(orders);
+        }
+        // GET: Admin/OrderDetails/5 - Детали конкретного заказа
+        public async Task<IActionResult> OrderDetails(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var order = await _context.Orders!
+                                      .Include(o => o.OrderItems) // Загружаем все элементы заказа
+                                      .Include(o => o.User) // Загружаем связанного пользователя
+                                      .FirstOrDefaultAsync(m => m.Id == id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+        // POST: Admin/UpdateOrderStatus - Обновление статуса заказа
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateOrderStatus(int id, string newStatus)
+        {
+            var order = await _context.Orders!.FindAsync(id);
+            if (order == null)
+            {
+                TempData["ErrorMessage"] = "Заказ не найден.";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            // Добавляем простую валидацию статуса (можно расширить)
+            var validStatuses = new List<string> { "Pending", "Processing", "Completed", "Cancelled" };
+            if (!validStatuses.Contains(newStatus))
+            {
+                TempData["ErrorMessage"] = "Недопустимый статус заказа.";
+                return RedirectToAction(nameof(Orders));
+            }
+
+            order.Status = newStatus;
+            try
+            {
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Статус заказа №{order.Id} успешно обновлен на '{newStatus}'.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Обработка конфликтов параллельного доступа (если нужно)
+                TempData["ErrorMessage"] = "Произошла ошибка при обновлении статуса заказа. Попробуйте еще раз.";
+            }
+
+            return RedirectToAction(nameof(OrderDetails), new { id = order.Id });
+        }
+        // Метод для загрузки изображения
+        private async Task<string> UploadImage(IFormFile imageFile)
+        {
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            // Генерируем уникальное имя файла
+            var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(imageFile.FileName);
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", _productImageUploadFolder);
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            // Убедитесь, что папка существует
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(fileStream);
+            }
+
+            // Возвращаем путь к файлу относительно wwwroot
+            return $"/{_productImageUploadFolder}{uniqueFileName}";
+        }
+        // Метод для удаления изображения
+        private void DeleteImage(string? imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                return;
+            }
+
+            // Удаляем ведущий слэш, если он есть
+            var relativePath = imageUrl.TrimStart('/');
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
         }
     }
 }

@@ -1,0 +1,118 @@
+﻿@model CoffeeShop.Web.Models.Order
+
+@{
+    ViewData["Title"] = $"Детали заказа №{Model.Id}";
+    // Список возможных статусов для выпадающего списка
+    var statuses = new List<string> { "В ожидании", "В обработке", "Завершено", "Отменено" };
+}
+
+<h1>Детали заказа №@Model.Id</h1>
+
+<hr />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                Информация о заказе
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Дата заказа:</strong> @Model.OrderDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</li>
+                <li class="list-group-item">
+                    <strong>Клиент:</strong>
+                    @if (Model.User != null)
+                    {
+                        <span>@Model.User.UserName</span> <small class="text-muted">(ID: @Model.UserId)</small>
+                    }
+                    else
+                    {
+                        <span>@Model.CustomerName</span>
+                    }
+                </li>
+                <li class="list-group-item"><strong>Email:</strong> @Model.CustomerEmail</li>
+                @* <li class="list-group-item"><strong>Телефон:</strong> @Model.CustomerPhone</li>
+                <li class="list-group-item"><strong>Адрес доставки:</strong> @Model.DeliveryAddress</li> *@
+                <li class="list-group-item"><strong>Общая сумма:</strong> @Model.TotalAmount.ToString("C")</li>
+                <li class="list-group-item">
+                    <strong>Текущий статус:</strong>
+                    <span class="badge @(Model.Status == "Completed" ? "bg-success" : Model.Status == "Cancelled" ? "bg-danger" : "bg-warning text-dark")">
+                        @Model.Status
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                Элементы заказа
+            </div>
+            @if (Model.OrderItems != null && Model.OrderItems.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @item.ProductName (@item.ProductType) x @item.Quantity
+                            <span>@item.TotalPrice.ToString("C")</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="card-text">В этом заказе нет элементов.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                Изменить статус заказа
+            </div>
+            <div class="card-body">
+                <form asp-action="UpdateOrderStatus" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="form-group mb-3">
+                        <label for="newStatus" class="control-label">Новый статус</label>
+                        <select name="newStatus" id="newStatus" class="form-control">
+                            @foreach (var status in statuses)
+                        {
+                            @if (Model.Status == status)
+                            {
+                                <option value="@status" selected>@status</option>
+                            }
+                            else
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-warning w-100">Обновить статус</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Orders" class="btn btn-secondary">Вернуться к списку заказов</a>
+</div>
