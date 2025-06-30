@@ -8,33 +8,33 @@ using System.Globalization;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-                       throw new InvalidOperationException("Строка подключения 'DefaultConnection' не найдена.");
+                       throw new InvalidOperationException("Г‘ГІГ°Г®ГЄГ  ГЇГ®Г¤ГЄГ«ГѕГ·ГҐГ­ГЁГї 'DefaultConnection' Г­ГҐ Г­Г Г©Г¤ГҐГ­Г .");
 
-// Регистрируем ApplicationDbContext с SQLite
+// ГђГҐГЈГЁГ±ГІГ°ГЁГ°ГіГҐГ¬ ApplicationDbContext Г± SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// Настраиваем ASP.NET Core Identity
+// ГЌГ Г±ГІГ°Г ГЁГўГ ГҐГ¬ ASP.NET Core Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddRoles<IdentityRole>() // Включаем поддержку ролей в Identity
+    .AddRoles<IdentityRole>() // Г‚ГЄГ«ГѕГ·Г ГҐГ¬ ГЇГ®Г¤Г¤ГҐГ°Г¦ГЄГі Г°Г®Г«ГҐГ© Гў Identity
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Добавляем поддержку контроллеров с представлениями (MVC)
+// Г„Г®ГЎГ ГўГ«ГїГҐГ¬ ГЇГ®Г¤Г¤ГҐГ°Г¦ГЄГі ГЄГ®Г­ГІГ°Г®Г«Г«ГҐГ°Г®Гў Г± ГЇГ°ГҐГ¤Г±ГІГ ГўГ«ГҐГ­ГЁГїГ¬ГЁ (MVC)
 builder.Services.AddControllersWithViews();
-// Добавляем поддержку Razor Pages (для Identity UI)
+// Г„Г®ГЎГ ГўГ«ГїГҐГ¬ ГЇГ®Г¤Г¤ГҐГ°Г¦ГЄГі Razor Pages (Г¤Г«Гї Identity UI)
 builder.Services.AddRazorPages();
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Время неактивности сессии до её истечения
-    options.Cookie.HttpOnly = true; // Куки сессии доступны только по HTTP, не через JavaScript
-    options.Cookie.IsEssential = true; // Сделать куки сессии обязательными для работы приложения
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Г‚Г°ГҐГ¬Гї Г­ГҐГ ГЄГІГЁГўГ­Г®Г±ГІГЁ Г±ГҐГ±Г±ГЁГЁ Г¤Г® ГҐВё ГЁГ±ГІГҐГ·ГҐГ­ГЁГї
+    options.Cookie.HttpOnly = true; // ГЉГіГЄГЁ Г±ГҐГ±Г±ГЁГЁ Г¤Г®Г±ГІГіГЇГ­Г» ГІГ®Г«ГјГЄГ® ГЇГ® HTTP, Г­ГҐ Г·ГҐГ°ГҐГ§ JavaScript
+    options.Cookie.IsEssential = true; // Г‘Г¤ГҐГ«Г ГІГј ГЄГіГЄГЁ Г±ГҐГ±Г±ГЁГЁ Г®ГЎГїГ§Г ГІГҐГ«ГјГ­Г»Г¬ГЁ Г¤Г«Гї Г°Г ГЎГ®ГІГ» ГЇГ°ГЁГ«Г®Г¦ГҐГ­ГЁГї
 });
 
-// --- Настройка сервисов локализации ---
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Путь к папке с файлами ресурсов
+// --- ГЌГ Г±ГІГ°Г®Г©ГЄГ  Г±ГҐГ°ГўГЁГ±Г®Гў Г«Г®ГЄГ Г«ГЁГ§Г Г¶ГЁГЁ ---
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // ГЏГіГІГј ГЄ ГЇГ ГЇГЄГҐ Г± ГґГ Г©Г«Г Г¬ГЁ Г°ГҐГ±ГіГ°Г±Г®Гў
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
@@ -44,22 +44,22 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
         new CultureInfo("en-US")
     };
 
-    options.DefaultRequestCulture = new RequestCulture("ru-RU"); // Устанавливаем русский по умолчанию
+    options.DefaultRequestCulture = new RequestCulture("ru-RU"); // Г“Г±ГІГ Г­Г ГўГ«ГЁГўГ ГҐГ¬ Г°ГіГ±Г±ГЄГЁГ© ГЇГ® ГіГ¬Г®Г«Г·Г Г­ГЁГѕ
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
-    options.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider()); // Можно использовать заголовок Accept-Language
+    options.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider()); // ГЊГ®Г¦Г­Г® ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј Г§Г ГЈГ®Г«Г®ГўГ®ГЄ Accept-Language
     
 });
 
-// Добавляем MVC, ViewLocalization и DataAnnotationsLocalization в одном вызове
+// Г„Г®ГЎГ ГўГ«ГїГҐГ¬ MVC, ViewLocalization ГЁ DataAnnotationsLocalization Гў Г®Г¤Г­Г®Г¬ ГўГ»Г§Г®ГўГҐ
 builder.Services.AddMvc()
-    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix) // Для локализации представлений
-    .AddDataAnnotationsLocalization(); // Для локализации атрибутов валидации в моделях
+    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix) // Г„Г«Гї Г«Г®ГЄГ Г«ГЁГ§Г Г¶ГЁГЁ ГЇГ°ГҐГ¤Г±ГІГ ГўГ«ГҐГ­ГЁГ©
+    .AddDataAnnotationsLocalization(); // Г„Г«Гї Г«Г®ГЄГ Г«ГЁГ§Г Г¶ГЁГЁ Г ГІГ°ГЁГЎГіГІГ®Гў ГўГ Г«ГЁГ¤Г Г¶ГЁГЁ Гў Г¬Г®Г¤ГҐГ«ГїГµ
 
 
 var app = builder.Build();
 
-// Применяем миграции и заполняем данные при запуске
+// ГЏГ°ГЁГ¬ГҐГ­ГїГҐГ¬ Г¬ГЁГЈГ°Г Г¶ГЁГЁ ГЁ Г§Г ГЇГ®Г«Г­ГїГҐГ¬ Г¤Г Г­Г­Г»ГҐ ГЇГ°ГЁ Г§Г ГЇГіГ±ГЄГҐ
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -68,21 +68,21 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate();
 
-        // Создаем роли и администратора
+        // Г‘Г®Г§Г¤Г ГҐГ¬ Г°Г®Г«ГЁ ГЁ Г Г¤Г¬ГЁГ­ГЁГ±ГІГ°Г ГІГ®Г°Г 
         await ApplicationDbContext.SeedRolesAndAdminUser(services);
 
-        // ВРЕМЕННЫЙ ВЫЗОВ ДЛЯ РУЧНОГО НАЗНАЧЕНИЯ РОЛИ
-        //await ApplicationDbContext.AssignAdminRoleToUser(services, "Ember0807@gmail.com");
+        // Г‚ГђГ…ГЊГ…ГЌГЌГ›Г‰ Г‚Г›Г‡ГЋГ‚ Г„Г‹Гџ ГђГ“Г—ГЌГЋГѓГЋ ГЌГЂГ‡ГЌГЂГ—Г…ГЌГ€Гџ ГђГЋГ‹Г€
+        //await ApplicationDbContext.AssignAdminRoleToUser(services, "...@gmail.com");
 
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService < ILogger < Program > >();
-        logger.LogError(ex, "Произошла ошибка при заполнении базы данных.");
+        logger.LogError(ex, "ГЏГ°Г®ГЁГ§Г®ГёГ«Г  Г®ГёГЁГЎГЄГ  ГЇГ°ГЁ Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГЁ ГЎГ Г§Г» Г¤Г Г­Г­Г»Гµ.");
     }
 }
 
-// Проверка окружения и обработчик ошибок 
+// ГЏГ°Г®ГўГҐГ°ГЄГ  Г®ГЄГ°ГіГ¦ГҐГ­ГЁГї ГЁ Г®ГЎГ°Г ГЎГ®ГІГ·ГЁГЄ Г®ГёГЁГЎГ®ГЄ 
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -96,7 +96,7 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// --- ИСПОЛЬЗОВАНИЕ ЛОКАЛИЗАЦИИ 
+// --- Г€Г‘ГЏГЋГ‹ГњГ‡ГЋГ‚ГЂГЌГ€Г… Г‹ГЋГЉГЂГ‹Г€Г‡ГЂГ–Г€Г€ 
 app.UseRequestLocalization();
 
 app.UseRouting();
