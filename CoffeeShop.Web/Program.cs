@@ -8,33 +8,33 @@ using System.Globalization;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-                       throw new InvalidOperationException("Ñòðîêà ïîäêëþ÷åíèÿ 'DefaultConnection' íå íàéäåíà.");
+                       throw new InvalidOperationException("Строка подключения 'DefaultConnection' не найдена.");
 
-// Ðåãèñòðèðóåì ApplicationDbContext ñ SQLite
+// Регистрируем ApplicationDbContext с SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// Íàñòðàèâàåì ASP.NET Core Identity
+// Настраиваем ASP.NET Core Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddRoles<IdentityRole>() // Âêëþ÷àåì ïîääåðæêó ðîëåé â Identity
+    .AddRoles<IdentityRole>() // Включаем поддержку ролей в Identity
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Äîáàâëÿåì ïîääåðæêó êîíòðîëëåðîâ ñ ïðåäñòàâëåíèÿìè (MVC)
+// Добавляем поддержку контроллеров с представлениями (MVC)
 builder.Services.AddControllersWithViews();
-// Äîáàâëÿåì ïîääåðæêó Razor Pages (äëÿ Identity UI)
+// Добавляем поддержку Razor Pages (для Identity UI)
 builder.Services.AddRazorPages();
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Âðåìÿ íåàêòèâíîñòè ñåññèè äî å¸ èñòå÷åíèÿ
-    options.Cookie.HttpOnly = true; // Êóêè ñåññèè äîñòóïíû òîëüêî ïî HTTP, íå ÷åðåç JavaScript
-    options.Cookie.IsEssential = true; // Ñäåëàòü êóêè ñåññèè îáÿçàòåëüíûìè äëÿ ðàáîòû ïðèëîæåíèÿ
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Время неактивности сессии до её истечения
+    options.Cookie.HttpOnly = true; // Куки сессии доступны только по HTTP, не через JavaScript
+    options.Cookie.IsEssential = true; // Сделать куки сессии обязательными для работы приложения
 });
 
-// --- Íàñòðîéêà ñåðâèñîâ ëîêàëèçàöèè ---
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Ïóòü ê ïàïêå ñ ôàéëàìè ðåñóðñîâ
+// --- Настройка сервисов локализации ---
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources"); // Путь к папке с файлами ресурсов
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
@@ -44,22 +44,22 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
         new CultureInfo("en-US")
     };
 
-    options.DefaultRequestCulture = new RequestCulture("ru-RU"); // Óñòàíàâëèâàåì ðóññêèé ïî óìîë÷àíèþ
+    options.DefaultRequestCulture = new RequestCulture("ru-RU"); // Устанавливаем русский по умолчанию
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
-    options.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider()); // Ìîæíî èñïîëüçîâàòü çàãîëîâîê Accept-Language
+    options.RequestCultureProviders.Insert(0, new AcceptLanguageHeaderRequestCultureProvider()); // Можно использовать заголовок Accept-Language
     
 });
 
-// Äîáàâëÿåì MVC, ViewLocalization è DataAnnotationsLocalization â îäíîì âûçîâå
+// Добавляем MVC, ViewLocalization и DataAnnotationsLocalization в одном вызове
 builder.Services.AddMvc()
-    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix) // Äëÿ ëîêàëèçàöèè ïðåäñòàâëåíèé
-    .AddDataAnnotationsLocalization(); // Äëÿ ëîêàëèçàöèè àòðèáóòîâ âàëèäàöèè â ìîäåëÿõ
+    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix) // Для локализации представлений
+    .AddDataAnnotationsLocalization(); // Для локализации атрибутов валидации в моделях
 
 
 var app = builder.Build();
 
-// Ïðèìåíÿåì ìèãðàöèè è çàïîëíÿåì äàííûå ïðè çàïóñêå
+// Применяем миграции и заполняем данные при запуске
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -68,21 +68,21 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate();
 
-        // Ñîçäàåì ðîëè è àäìèíèñòðàòîðà
+        // Создаем роли и администратора
         await ApplicationDbContext.SeedRolesAndAdminUser(services);
 
-        // ÂÐÅÌÅÍÍÛÉ ÂÛÇÎÂ ÄËß ÐÓ×ÍÎÃÎ ÍÀÇÍÀ×ÅÍÈß ÐÎËÈ
+        // ВРЕМЕННЫЙ ВЫЗОВ ДЛЯ РУЧНОГО НАЗНАЧЕНИЯ РОЛИ
         //await ApplicationDbContext.AssignAdminRoleToUser(services, "...@gmail.com");
 
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService < ILogger < Program > >();
-        logger.LogError(ex, "Ïðîèçîøëà îøèáêà ïðè çàïîëíåíèè áàçû äàííûõ.");
+        logger.LogError(ex, "Произошла ошибка при заполнении базы данных.");
     }
 }
 
-// Ïðîâåðêà îêðóæåíèÿ è îáðàáîò÷èê îøèáîê 
+// Проверка окружения и обработчик ошибок 
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -96,7 +96,7 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// --- ÈÑÏÎËÜÇÎÂÀÍÈÅ ËÎÊÀËÈÇÀÖÈÈ 
+// --- ИСПОЛЬЗОВАНИЕ ЛОКАЛИЗАЦИИ 
 app.UseRequestLocalization();
 
 app.UseRouting();
